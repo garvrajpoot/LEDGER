@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ledger — Credit Risk Assessment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #0E0F0C;
+    --black-soft: #17180F;
+    --lime: #C6F135;
+    --lime-dim: #A9CE2C;
+    --hero-bg: #E4F3B8;
+    --white: #FFFFFF;
+    --grey: #8B9078;
+    --grey-line-dark: rgba(255,255,255,0.14);
+    --grey-line-light: rgba(14,15,12,0.18);
+    --debit: #FF6B57;
+    --credit: #7FE07E;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--white);
+    color: var(--black);
+    font-family: 'Inter', sans-serif;
+    font-feature-settings: 'tnum' 1;
+  }
+
+  h1, h2, .display {
+    font-family: 'Space Grotesk', sans-serif;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+
+  a { color: inherit; }
+
+  /* ---------- Nav ---------- */
+  .navbar {
+    position: sticky;
+    top: 16px;
+    z-index: 50;
+    display: flex;
+    justify-content: center;
+    padding: 0 20px;
+    margin-bottom: -60px;
+  }
+
+  .navpill {
+    background: var(--black);
+    border-radius: 40px;
+    padding: 10px 10px 10px 22px;
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    max-width: 900px;
+    width: 100%;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+  }
+
+  .navpill .mark {
+    color: var(--white);
+    font-weight: 600;
+    font-size: 1.05rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-right: auto;
+  }
+
+  .navpill .mark .dot {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: var(--lime);
+  }
+
+  .navpill button.cta {
+    background: var(--lime);
+    color: var(--black);
+    border: none;
+    border-radius: 30px;
+    padding: 11px 22px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    background: var(--hero-bg);
+    padding: 130px 8vw 70px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: "";
+    position: absolute;
+    right: -10%;
+    top: -20%;
+    width: 900px;
+    height: 900px;
+    background: repeating-linear-gradient(
+      55deg,
+      rgba(14,15,12,0.06) 0px,
+      rgba(14,15,12,0.06) 3px,
+      transparent 3px,
+      transparent 16px
+    );
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .hero-inner { position: relative; max-width: 1100px; margin: 0 auto; }
+
+  .hero h1 {
+    font-size: clamp(2.6rem, 6vw, 4.4rem);
+    font-weight: 600;
+    line-height: 1.05;
+    max-width: 14ch;
+  }
+
+  .hero-sub {
+    margin-top: 40px;
+    border-top: 1px solid var(--grey-line-light);
+    padding-top: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+
+  .hero-sub p {
+    max-width: 44ch;
+    font-size: 1.05rem;
+    color: #333;
+    margin: 0;
+  }
+
+  .hero-sub button {
+    background: var(--black);
+    color: var(--lime);
+    border: none;
+    border-radius: 6px;
+    padding: 18px 30px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  /* ---------- Dark section shared ---------- */
+  .dark {
+    background: var(--black);
+    color: var(--white);
+    padding: 90px 8vw;
+  }
+
+  .tag {
+    display: inline-block;
+    border: 1px solid var(--lime);
+    color: var(--lime);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    padding: 7px 16px;
+    border-radius: 20px;
+    margin-bottom: 22px;
+  }
+
+  .section-head {
+    max-width: 1100px;
+    margin: 0 auto 50px;
+  }
+
+  .section-head h2 {
+    font-size: clamp(2rem, 4vw, 2.8rem);
+    font-weight: 500;
+    max-width: 20ch;
+  }
+
+  .section-head h2 em {
+    color: var(--lime);
+    font-style: normal;
+  }
+
+  /* ---------- Form as numbered rows ---------- */
+  form { max-width: 1100px; margin: 0 auto; }
+
+  .field-row {
+    display: grid;
+    grid-template-columns: 60px 1fr 260px;
+    gap: 24px;
+    align-items: center;
+    padding: 22px 0;
+    border-top: 1px solid var(--grey-line-dark);
+  }
+
+  .field-row:last-of-type { border-bottom: 1px solid var(--grey-line-dark); }
+
+  .field-num {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.3rem;
+    color: var(--grey);
+  }
+
+  .field-info label {
+    font-size: 1.05rem;
+    font-weight: 500;
+    display: block;
+  }
+
+  .field-info .hint {
+    font-size: 0.82rem;
+    color: var(--grey);
+    margin-top: 2px;
+    display: block;
+  }
+
+  .field-row input, .field-row select {
+    width: 100%;
+    background: var(--black-soft);
+    border: 1px solid var(--grey-line-dark);
+    border-radius: 6px;
+    color: var(--white);
+    font-family: 'Inter', sans-serif;
+    font-feature-settings: 'tnum' 1;
+    font-size: 0.95rem;
+    padding: 12px 14px;
+    outline: none;
+  }
+
+  .field-row input:focus, .field-row select:focus {
+    border-color: var(--lime);
+  }
+
+  .field-row select { cursor: pointer; }
+
+  .submit-row {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 40px;
+  }
+
+  button#assess {
+    background: var(--lime);
+    color: var(--black);
+    border: none;
+    border-radius: 30px;
+    padding: 18px 34px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+  }
+
+  button#assess:disabled { background: var(--grey); cursor: wait; }
+
+  #error {
+    color: var(--debit);
+    font-size: 0.9rem;
+    margin-top: 14px;
+    display: none;
+    text-align: right;
+  }
+
+  /* ---------- Result ---------- */
+  .result-wrap {
+    background: var(--black);
+    padding: 0 8vw 110px;
+  }
+
+  #result {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: none;
+  }
+  #result.show { display: block; }
+
+  .verdict {
+    background: var(--black-soft);
+    border: 1px solid var(--grey-line-dark);
+    border-radius: 16px;
+    padding: 44px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: center;
+  }
+
+  .verdict .stamp {
+    color: var(--grey);
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+  }
+
+  .verdict .label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 2.4rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .verdict .label.low { color: var(--credit); }
+  .verdict .label.moderate { color: var(--lime); }
+  .verdict .label.high, .verdict .label.very-high { color: var(--debit); }
+
+  .verdict .prob {
+    color: var(--grey);
+    font-size: 1rem;
+  }
+
+  .bar-track {
+    height: 12px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+
+  .bar-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--lime);
+    transition: width 0.6s ease;
+  }
+
+  .bar-fill.low { background: var(--credit); }
+  .bar-fill.moderate { background: var(--lime); }
+  .bar-fill.high, .bar-fill.very-high { background: var(--debit); }
+
+  .scale-labels {
+    display: flex;
+    justify-content: space-between;
+    color: var(--grey);
+    font-size: 0.72rem;
+  }
+
+  .verdict .note {
+    grid-column: 1 / -1;
+    border-top: 1px solid var(--grey-line-dark);
+    padding-top: 20px;
+    color: var(--grey);
+    font-size: 0.9rem;
+  }
+
+  footer {
+    background: var(--black);
+    color: var(--grey);
+    padding: 24px 8vw 40px;
+    font-size: 0.78rem;
+    border-top: 1px solid var(--grey-line-dark);
+  }
+
+  @media (max-width: 720px) {
+    .field-row { grid-template-columns: 40px 1fr; }
+    .field-row input, .field-row select { grid-column: 1 / -1; }
+    .verdict { grid-template-columns: 1fr; }
+    .hero { padding: 110px 6vw 50px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="navbar">
+  <div class="navpill">
+    <div class="mark"><span class="dot"></span> Ledger</div>
+    <button class="cta" onclick="document.getElementById('formSection').scrollIntoView({behavior:'smooth'})">Run Assessment</button>
+  </div>
+</div>
+
+<section class="hero">
+  <div class="hero-inner">
+    <h1>Know your risk<br>before you sign.</h1>
+    <div class="hero-sub">
+      <p>Ledger runs an applicant's profile through a trained credit-risk model and returns a default probability — the same signal a lender uses to price or decline a loan.</p>
+      <button onclick="document.getElementById('formSection').scrollIntoView({behavior:'smooth'})">Start an assessment</button>
+    </div>
+  </div>
+</section>
+
+<section class="dark" id="formSection">
+  <div class="section-head">
+    <span class="tag">APPLICANT PROFILE</span>
+    <h2>Fill in the borrower's <em>details</em> to generate a risk read.</h2>
+  </div>
+
+  <form id="riskForm">
+    <div class="field-row">
+      <div class="field-num">01</div>
+      <div class="field-info"><label for="person_age">Age</label><span class="hint">Years</span></div>
+      <input type="number" id="person_age" min="18" max="90" value="28" required>
+    </div>
+    <div class="field-row">
+      <div class="field-num">02</div>
+      <div class="field-info"><label for="person_income">Annual income</label><span class="hint">USD</span></div>
+      <input type="number" id="person_income" min="1" value="52000" required>
+    </div>
+    <div class="field-row">
+      <div class="field-num">03</div>
+      <div class="field-info"><label for="person_home_ownership">Home ownership</label><span class="hint">Current status</span></div>
+      <select id="person_home_ownership">
+        <option value="RENT">Rent</option>
+        <option value="MORTGAGE">Mortgage</option>
+        <option value="OWN">Own</option>
+        <option value="OTHER">Other</option>
+      </select>
+    </div>
+    <div class="field-row">
+      <div class="field-num">04</div>
+      <div class="field-info"><label for="person_emp_length">Employment length</label><span class="hint">Years</span></div>
+      <input type="number" id="person_emp_length" min="0" max="60" step="0.5" value="4" required>
+    </div>
+    <div class="field-row">
+      <div class="field-num">05</div>
+      <div class="field-info"><label for="loan_intent">Loan purpose</label><span class="hint">Stated intent</span></div>
+      <select id="loan_intent">
+        <option value="PERSONAL">Personal</option>
+        <option value="EDUCATION">Education</option>
+        <option value="MEDICAL">Medical</option>
+        <option value="VENTURE">Venture</option>
+        <option value="HOMEIMPROVEMENT">Home improvement</option>
+        <option value="DEBTCONSOLIDATION">Debt consolidation</option>
+      </select>
+    </div>
+    <div class="field-row">
+      <div class="field-num">06</div>
+      <div class="field-info"><label for="loan_grade">Loan grade</label><span class="hint">A best — G worst</span></div>
+      <select id="loan_grade">
+        <option>A</option><option>B</option><option selected>C</option>
+        <option>D</option><option>E</option><option>F</option><option>G</option>
+      </select>
+    </div>
+    <div class="field-row">
+      <div class="field-num">07</div>
+      <div class="field-info"><label for="loan_amnt">Loan amount</label><span class="hint">USD</span></div>
+      <input type="number" id="loan_amnt" min="1" value="10000" required>
+    </div>
+    <div class="field-row">
+      <div class="field-num">08</div>
+      <div class="field-info"><label for="loan_int_rate">Interest rate</label><span class="hint">%</span></div>
+      <input type="number" id="loan_int_rate" min="0" max="40" step="0.01" value="11.5" required>
+    </div>
+    <div class="field-row">
+      <div class="field-num">09</div>
+      <div class="field-info"><label for="loan_percent_income">Loan / income ratio</label><span class="hint">0.00 – 1.00</span></div>
+      <input type="number" id="loan_percent_income" min="0" max="1" step="0.01" value="0.19" required>
+    </div>
+    <div class="field-row">
+      <div class="field-num">10</div>
+      <div class="field-info"><label for="cb_person_default_on_file">Prior default on file</label><span class="hint">Credit bureau record</span></div>
+      <select id="cb_person_default_on_file">
+        <option value="N">No</option>
+        <option value="Y">Yes</option>
+      </select>
+    </div>
+    <div class="field-row">
+      <div class="field-num">11</div>
+      <div class="field-info"><label for="cb_person_cred_hist_length">Credit history length</label><span class="hint">Years</span></div>
+      <input type="number" id="cb_person_cred_hist_length" min="0" max="60" value="6" required>
+    </div>
+
+    <div class="submit-row">
+      <button type="submit" id="assess">Run Assessment</button>
+    </div>
+    <div id="error"></div>
+  </form>
+</section>
+
+<div class="result-wrap">
+  <div id="result">
+    <div class="verdict">
+      <div>
+        <div class="stamp">MODEL OUTPUT</div>
+        <div class="label" id="riskLabel">—</div>
+        <div class="prob"><span id="probPct">0%</span> estimated probability of default</div>
+      </div>
+      <div>
+        <div class="bar-track"><div class="bar-fill" id="barFill"></div></div>
+        <div class="scale-labels"><span>0%</span><span>50%</span><span>100%</span></div>
+      </div>
+      <div class="note">This is a model estimate for demonstration purposes, not a lending decision or financial advice.</div>
+    </div>
+  </div>
+</div>
+
+<footer>LEDGER — CREDIT RISK ASSESSMENT TOOL · MODEL: RANDOM FOREST, TRAINED ON KAGGLE CREDIT RISK DATASET</footer>
+
+<script>
+  const API_URL = window.LEDGER_API_URL || "http://localhost:8000";
+
+  const form = document.getElementById('riskForm');
+  const errorBox = document.getElementById('error');
+  const resultBox = document.getElementById('result');
+  const btn = document.getElementById('assess');
+
+  function fieldValue(id) {
+    const el = document.getElementById(id);
+    return el.type === 'number' ? Number(el.value) : el.value;
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errorBox.style.display = 'none';
+    resultBox.classList.remove('show');
+    btn.disabled = true;
+    btn.textContent = 'Assessing…';
+
+    const payload = {
+      person_age: fieldValue('person_age'),
+      person_income: fieldValue('person_income'),
+      person_home_ownership: fieldValue('person_home_ownership'),
+      person_emp_length: fieldValue('person_emp_length'),
+      loan_intent: fieldValue('loan_intent'),
+      loan_grade: fieldValue('loan_grade'),
+      loan_amnt: fieldValue('loan_amnt'),
+      loan_int_rate: fieldValue('loan_int_rate'),
+      loan_percent_income: fieldValue('loan_percent_income'),
+      cb_person_default_on_file: fieldValue('cb_person_default_on_file'),
+      cb_person_cred_hist_length: fieldValue('cb_person_cred_hist_length'),
+    };
+
+    try {
+      const res = await fetch(`${API_URL}/predict`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.detail || `Request failed (${res.status})`);
+      }
+      const data = await res.json();
+      renderResult(data);
+    } catch (err) {
+      errorBox.textContent = `Could not complete assessment — ${err.message}`;
+      errorBox.style.display = 'block';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Run Assessment';
+    }
+  });
+
+  function renderResult(data) {
+    const pct = (data.default_probability * 100).toFixed(1);
+    const slug = data.risk_label.toLowerCase().replace(/\s+/g, '-');
+
+    document.getElementById('probPct').textContent = `${pct}%`;
+    const labelEl = document.getElementById('riskLabel');
+    labelEl.textContent = data.risk_label;
+    labelEl.className = 'label ' + slug;
+
+    const fill = document.getElementById('barFill');
+    fill.style.width = `${pct}%`;
+    fill.className = 'bar-fill ' + slug;
+
+    resultBox.classList.add('show');
+    resultBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+</script>
+</body>
+</html>
