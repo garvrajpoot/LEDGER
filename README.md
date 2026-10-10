@@ -5,8 +5,8 @@ Ledger is a full-stack credit risk / loan default prediction app. It takes an ap
 Built as a portfolio project to demonstrate end-to-end data science + software engineering: data cleaning, model training, a REST API, and a production-style frontend — not just a notebook.
 
 ## Live Demo
-- Frontend: _add your GitHub Pages URL here_
-- API: _add your Render URL here_ (interactive docs at `/docs`)
+- Frontend: https://garvrajpoot.github.io/LEDGER/
+- API: https://ledger-qeks.onrender.com
 
 > The API runs on a free Render instance that sleeps when idle, so the first request after a quiet period can take 30–60 seconds to wake up.
 
